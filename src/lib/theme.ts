@@ -1,0 +1,30 @@
+export const colors = {
+  bg: '#0A0A0A',
+  card: '#141414',
+  cardBorder: '#222222',
+  input: '#1A1A1A',
+  inputBorder: '#2A2A2A',
+  green: '#00FF88',
+  greenDim: 'rgba(0,255,136,0.1)',
+  greenBorder: 'rgba(0,255,136,0.2)',
+  white: '#FFFFFF',
+  text: '#FFFFFF',
+  textMuted: 'rgba(255,255,255,0.5)',
+  textDim: 'rgba(255,255,255,0.3)',
+  textFaint: 'rgba(255,255,255,0.2)',
+  divider: '#1F1F1F',
+  red: '#f87171',
+  blue: '#60a5fa',
+  gold: '#FFD700',
+  header: '#0D0D0D',
+};
+
+export const bodyColors: Record<string, string> = {
+  chest: '#f87171',
+  back: '#34d399',
+  legs: '#60a5fa',
+  shoulders: '#a78bfa',
+  arms: '#fbbf24',
+  abs: '#f472b6',
+  cardio: '#00CC66',
+};
