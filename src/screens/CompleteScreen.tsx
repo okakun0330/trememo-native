@@ -13,7 +13,7 @@ import { getLastSessionSummary } from '../lib/storage';
 import { SessionSummary } from '../lib/storage';
 import { colors } from '../lib/theme';
 import { anatomyImages } from '../lib/images';
-import { BODY_PART_LABELS } from '../lib/types';
+import { BODY_PART_LABELS, BODY_PART_EN } from '../lib/types';
 import { RootStackParamList } from '../lib/navigation';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -33,13 +33,12 @@ function StoryCard({
   const today = new Date().toLocaleDateString('en-US', {
     month: 'short', day: 'numeric', year: 'numeric',
   }).toUpperCase();
-  const bpLabel = summary ? BODY_PART_LABELS[summary.bodyPart].toUpperCase() : '';
+  const bpLabel = summary ? BODY_PART_EN[summary.bodyPart] : '';
 
   const content = (
     <View style={card.inner}>
-      {/* グラデーションオーバーレイ */}
-      <View style={card.gradTop} />
-      <View style={card.gradBottom} />
+      {/* オーバーレイ */}
+      <View style={card.overlay} />
 
       {/* TOP: ロゴ + 日付 */}
       <View style={card.top}>
@@ -49,13 +48,25 @@ function StoryCard({
 
       {/* CENTER: メインテキスト */}
       <View style={card.center}>
-        <Text style={card.finishedSmall}>FINISHED</Text>
-        <Text style={card.workout}>WORKOUT</Text>
         {bpLabel ? <Text style={card.bpLabel}>{bpLabel}</Text> : null}
+        <Text style={card.finishedWorkout}>FINISHED{'\n'}WORKOUT</Text>
       </View>
 
       {/* BOTTOM: 統計 + 種目リスト */}
       <View style={card.bottom}>
+        {/* 種目リスト */}
+        {summary && summary.exercises.length > 0 && (
+          <View style={card.exList}>
+            {summary.exercises.slice(0, 4).map((ex, i) => (
+              <View key={i} style={card.exRow}>
+                <Text style={card.exName}>{ex.name}</Text>
+                <Text style={card.exSets}>{ex.setsLabel}</Text>
+                {ex.isNewPB && <Text style={card.pbBadge}>PB</Text>}
+              </View>
+            ))}
+          </View>
+        )}
+
         {/* Stats */}
         <View style={card.statsRow}>
           <View style={card.statItem}>
@@ -68,19 +79,6 @@ function StoryCard({
             <Text style={card.statUnit}>TIME</Text>
           </View>
         </View>
-
-        {/* 種目リスト */}
-        {summary && summary.exercises.length > 0 && (
-          <View style={card.exList}>
-            {summary.exercises.slice(0, 5).map((ex, i) => (
-              <View key={i} style={card.exRow}>
-                <Text style={card.exName}>{ex.name}</Text>
-                <Text style={card.exSets}>{ex.setsLabel}</Text>
-                {ex.isNewPB && <Text style={card.pbBadge}>PB</Text>}
-              </View>
-            ))}
-          </View>
-        )}
       </View>
     </View>
   );
@@ -199,7 +197,7 @@ export default function CompleteScreen() {
             <>
               <View style={styles.statDivider} />
               <View style={styles.statItem}>
-                <Text style={styles.statNum}>{BODY_PART_LABELS[summary.bodyPart]}</Text>
+                <Text style={styles.statNum}>{BODY_PART_EN[summary.bodyPart]}</Text>
                 <Text style={styles.statLabel}>BODY PART</Text>
               </View>
             </>
@@ -486,20 +484,11 @@ const modal = StyleSheet.create({
 // ── Story Card styles ─────────────────────────────────────────────────────────
 const card = StyleSheet.create({
   container: { width: 300, height: 533 },
-  darkBg: { backgroundColor: '#0A0A0A' },
-  inner: { flex: 1, padding: 24, justifyContent: 'space-between' },
-  // グラデーション代替（半透明レイヤー）
-  gradTop: {
+  darkBg: { backgroundColor: '#111' },
+  inner: { flex: 1, padding: 22, justifyContent: 'space-between' },
+  overlay: {
     ...StyleSheet.absoluteFillObject,
-    bottom: undefined,
-    height: '50%',
-    backgroundColor: 'rgba(0,0,0,0.55)',
-  },
-  gradBottom: {
-    ...StyleSheet.absoluteFillObject,
-    top: '40%',
-    bottom: 0,
-    backgroundColor: 'rgba(0,0,0,0.75)',
+    backgroundColor: 'rgba(0,0,0,0.52)',
   },
   // Top
   top: {
@@ -508,39 +497,80 @@ const card = StyleSheet.create({
     alignItems: 'center',
     zIndex: 1,
   },
-  appName: { fontSize: 11, fontWeight: '900', color: '#C8FF00', letterSpacing: 4 },
-  date: { fontSize: 10, color: 'rgba(255,255,255,0.5)', letterSpacing: 1 },
+  appName: {
+    fontSize: 10,
+    fontWeight: '300',
+    color: '#C8FF00',
+    letterSpacing: 5,
+  },
+  date: {
+    fontSize: 10,
+    fontWeight: '300',
+    color: 'rgba(255,255,255,0.45)',
+    letterSpacing: 2,
+  },
   // Center
   center: { alignItems: 'flex-start', zIndex: 1 },
-  finishedSmall: { fontSize: 12, fontWeight: '700', color: '#C8FF00', letterSpacing: 5 },
-  workout: { fontSize: 44, fontWeight: '900', color: '#fff', letterSpacing: -1, lineHeight: 48 },
   bpLabel: {
-    marginTop: 6,
-    fontSize: 11,
-    fontWeight: '700',
-    color: 'rgba(255,255,255,0.6)',
+    fontSize: 10,
+    fontWeight: '300',
+    color: 'rgba(255,255,255,0.5)',
+    letterSpacing: 4,
+    marginBottom: 8,
+  },
+  finishedWorkout: {
+    fontSize: 30,
+    fontWeight: '200',
+    color: '#fff',
     letterSpacing: 3,
+    lineHeight: 38,
   },
   // Bottom
   bottom: { zIndex: 1 },
-  statsRow: {
-    flexDirection: 'row',
-    borderTopWidth: 1,
-    borderTopColor: 'rgba(255,255,255,0.15)',
-    paddingTop: 12,
-    marginBottom: 12,
-  },
-  statItem: { flex: 1, alignItems: 'center' },
-  statNum: { fontSize: 18, fontWeight: '900', color: '#fff' },
-  statUnit: { fontSize: 8, color: 'rgba(255,255,255,0.45)', letterSpacing: 2, marginTop: 2 },
-  statDivider: { width: 1, backgroundColor: 'rgba(255,255,255,0.15)' },
-  exList: { gap: 6 },
+  exList: { marginBottom: 16, gap: 5 },
   exRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
   },
-  exName: { fontSize: 11, fontWeight: '600', color: 'rgba(255,255,255,0.85)' },
-  exSets: { fontSize: 10, color: 'rgba(255,255,255,0.45)' },
-  pbBadge: { fontSize: 9, fontWeight: '800', color: '#FFD700', marginLeft: 6 },
+  exName: {
+    fontSize: 11,
+    fontWeight: '300',
+    color: 'rgba(255,255,255,0.75)',
+    flex: 1,
+  },
+  exSets: {
+    fontSize: 10,
+    fontWeight: '300',
+    color: 'rgba(255,255,255,0.4)',
+    marginLeft: 8,
+  },
+  pbBadge: {
+    fontSize: 8,
+    fontWeight: '600',
+    color: '#FFD700',
+    marginLeft: 6,
+    letterSpacing: 1,
+  },
+  statsRow: {
+    flexDirection: 'row',
+    borderTopWidth: 0.5,
+    borderTopColor: 'rgba(255,255,255,0.2)',
+    paddingTop: 12,
+  },
+  statItem: { flex: 1, alignItems: 'center' },
+  statNum: {
+    fontSize: 16,
+    fontWeight: '300',
+    color: '#fff',
+    letterSpacing: 1,
+  },
+  statUnit: {
+    fontSize: 8,
+    fontWeight: '300',
+    color: 'rgba(255,255,255,0.35)',
+    letterSpacing: 3,
+    marginTop: 3,
+  },
+  statDivider: { width: 0.5, backgroundColor: 'rgba(255,255,255,0.2)' },
 });
